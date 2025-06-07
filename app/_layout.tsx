@@ -4,16 +4,18 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { persistor, store } from "../store/store.js";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { Drawer } from "expo-router/drawer";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ActivityIndicator } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+import { Stack } from "expo-router";
+const client = new QueryClient();
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -26,30 +28,30 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Provider store={store}>
-        <PersistGate loading={<ActivityIndicator />} persistor={persistor}>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <Drawer>
-              <Drawer.Screen
+    <QueryClientProvider client={client}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <Provider store={store}>
+          <PersistGate loading={<ActivityIndicator />} persistor={persistor}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}>
+              <Stack.Screen
                 name="(tabs)"
                 options={{
-                  drawerLabel: "Home",
                   title: "overview",
                 }}
               />
-              <Drawer.Screen
+              <Stack.Screen
                 name="+not-found"
                 options={{
-                  drawerLabel: "User",
                   title: "overview",
                 }}
               />
-            </Drawer>
-          </GestureHandlerRootView>
-        </PersistGate>
-      </Provider>
-      <StatusBar style="auto" />
-    </ThemeProvider> //
+            </Stack>
+          </PersistGate>
+        </Provider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
