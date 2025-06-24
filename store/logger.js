@@ -1,6 +1,0 @@
-export const logger = (store) => (next) => (action) => {
-  console.log("dispatch", action.type, action.payload);
-  const result = next(action);
-  console.log("next state", store.getState());
-  return result;
-};
