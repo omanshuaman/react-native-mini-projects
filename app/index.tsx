@@ -1,37 +1,108 @@
-import ListItem from "@/components/ListItem";
-import { users } from "@/data/data";
+import Post from "@/components/Post";
 
-import { User } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
-import { ActivityIndicator, FlatList, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-const fetchUsers = async () => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => resolve(users), 100);
-  });
+import { useFocusEffect } from "@react-navigation/native";
+import Constants from "expo-constants";
+import { useCallback } from "react";
+import {
+  Dimensions,
+  FlatList,
+  ListRenderItemInfo,
+  View,
+  ViewToken,
+} from "react-native";
+const posts = require("../data/post.big.test.json")["result"];
+type PostType = {
+  video_id: string;
+  video_url: string;
+  is_challenge: boolean;
+  description: string;
+  reply_to_challengeId: null;
+  video_reply_count: number;
+  likes_count: number;
+  comments_count: number;
+  timestamp: number;
+  creator_username: string;
+  creator_profile_pic: string;
+  hashtags: Array<string>;
 };
-export default function Index() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["users"],
-    queryFn: fetchUsers,
-  });
-  console.log("[] sde");
 
-  if (isLoading) return <ActivityIndicator size="large" />;
-  if (isError) return <Text>Error loading data</Text>;
+export default function Index() {
+  let postRefs: Record<string, any> = {};
+  let currentlyPlaying: any = null;
+  let replayLastVideo = false;
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Home screen focused");
+      if (currentlyPlaying && replayLastVideo) {
+        currentlyPlaying.play();
+      }
+      replayLastVideo = false;
+
+      return () => {
+        console.log("Home screen unfocussed");
+        if (currentlyPlaying) {
+          currentlyPlaying.stop();
+          replayLastVideo = true;
+        }
+      };
+    }, [])
+  );
+  console.log("[] sde");
+  const _renderItem = ({ item }: ListRenderItemInfo<PostType>) => {
+    return (
+      <Post
+        ref={(ref: string) => {
+          postRefs[item.video_id] = ref;
+        }}
+        post={item}
+      />
+    );
+  };
+  const _onViewableItemsChanged = (props: {
+    changed: Array<ViewToken>;
+    viewableItems: Array<ViewToken>;
+  }) => {
+    const changed = props.changed;
+    changed.forEach((item) => {
+      const cell = postRefs[item.key as string];
+      if (cell) {
+        if (item.isViewable) {
+          cell.play();
+          currentlyPlaying = cell;
+        } else {
+          cell.stop();
+        }
+      }
+    });
+  };
+
+  const itemHeight =
+    Dimensions.get("window").height - (48 + Constants.statusBarHeight);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+    <View style={{ flex: 1, backgroundColor: "black" }}>
       <FlatList
-        data={data as User[]}
-        renderItem={({ item }) => <ListItem user={item} />}
-        keyExtractor={(item) => item.id.toString()}
-        initialNumToRender={4}
-        maxToRenderPerBatch={8}
-        windowSize={10}
-        removeClippedSubviews={true}
+        data={posts}
+        keyExtractor={(item) => item.video_id}
+        renderItem={_renderItem}
+        onViewableItemsChanged={_onViewableItemsChanged}
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={7}
+        getItemLayout={(_data, index) => ({
+          length: itemHeight,
+          offset: itemHeight * index,
+          index,
+        })}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 80,
+        }}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={itemHeight}
+        snapToAlignment="start"
+        decelerationRate="normal"
       />
-    </SafeAreaView>
+    </View>
   );
 }
