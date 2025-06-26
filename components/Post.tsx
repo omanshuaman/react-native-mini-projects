@@ -1,17 +1,21 @@
+import { useNavigation } from "@react-navigation/native";
 import { AVPlaybackStatus, ResizeMode, Video } from "expo-av";
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 // Define the type for the post prop
 type PostType = {
   video_id: string;
   creator_username: string;
   video_url: string;
+  pages_url: string;
 };
 
 type PostProps = {
   ref: Record<string, any>;
   post: PostType;
+  pages_url: string;
 };
 
 const Post: React.FC<PostProps> = ({ post }) => {
@@ -19,6 +23,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const [loaded, setLoaded] = useState(true);
 
   const videoRef = useRef<Video>(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     console.log(`${post.video_id} mounted`);
@@ -44,19 +49,28 @@ const Post: React.FC<PostProps> = ({ post }) => {
     [loaded, post.video_id]
   );
 
+  const router = useRouter();
+  const handleVideoPress = () => {
+    router.push({
+      pathname: post.pages_url as any,
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <Video
-        ref={videoRef}
-        shouldPlay={false}
-        isLooping
-        resizeMode={ResizeMode.COVER}
-        source={{
-          uri: post.video_url,
-        }}
-        style={styles.video}
-        onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-      />
+      <TouchableOpacity style={{ flex: 1 }} onPress={handleVideoPress}>
+        <Video
+          ref={videoRef}
+          shouldPlay={false}
+          isLooping
+          resizeMode={ResizeMode.COVER}
+          source={{
+            uri: post.video_url,
+          }}
+          style={styles.video}
+          onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+        />
+      </TouchableOpacity>
     </View>
   );
 };

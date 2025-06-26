@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "stickersmash",
     "jsEngine": "hermes",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "jsEngine": "jsc",

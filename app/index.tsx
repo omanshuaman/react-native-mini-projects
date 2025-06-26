@@ -14,6 +14,7 @@ const posts = require("../data/post.big.test.json")["result"];
 type PostType = {
   video_id: string;
   video_url: string;
+  pages_url: string;
   is_challenge: boolean;
   description: string;
   reply_to_challengeId: null;
@@ -56,6 +57,7 @@ export default function Index() {
           postRefs[item.video_id] = ref;
         }}
         post={item}
+        pages_url={item.pages_url}
       />
     );
   };
